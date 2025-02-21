@@ -12,6 +12,17 @@ data <- data.frame(
   bin = c(10,9.7,9.9,10,10.2,10.3,9.3,9.7,10,9.85) # some random other data
 ) 
 
+library(dplyr)     
+library(stringr)
+
+# Replace variations first (before title-casing)
+data$name <- str_replace_all(data$name, c("thoms" = "thomas"))
+data$name <- str_replace_all(data$name, c("tomas" = "thomas"))
+# Now apply str_to_title() to capitalize the first letter of each name
+data$name <- str_to_title(data$name)
+
+# Print the corrected data
+print(data)
 
 # > 1.2 Standardize a long list of names (difficult)
 # Thomas merged his data with several different other people that
@@ -20,7 +31,28 @@ data <- data.frame(
 # Use data data set: EEE_non_standardized_names.csv (on moodle)
 
 # Tipp: search/use "Fuzzy matching".
+library(dplyr)
+library(stringdist)
+library(fuzzyjoin)
+# Reference list of correct names
+correct_names <- data.frame(name = c("Thomas", "Peter"))
 
+# Convert all names to lowercase for better matching
+data$name <- tolower(data$name)
+correct_names$name <- tolower(correct_names$name)
+
+# Perform fuzzy matching (Levenshtein distance)
+df_corrected <- stringdist_left_join(data, correct_names, by = "name", max_dist = 2, method = "lv")
+
+# Convert names back to title case for better readability
+df_corrected$name.y <- tools::toTitleCase(df_corrected$name.y)
+
+# Keep only the corrected names and original bin values
+df_corrected <- df_corrected %>%
+  select(name = name.y, bin)
+
+# Print corrected dataframe
+print(df_corrected)
 
 # > 1.3 Standardization (medium)
 # Peter and Thomas have recorded their names correctly this time, however 
